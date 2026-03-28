@@ -1,0 +1,29 @@
+# Certora / Formal Verification Artifacts
+.certora_config/
+.certora_internal/
+.certora_metadata/
+certora_verify.log
+emv-*, emv_*, *emv.log
+*.smt2
+
+# Solidity / Build Artifacts
+artifacts/
+cache/
+out/
+typechain/
+typechain-types/
+flat/
+*.db
+
+# Dependencies
+node_modules/
+lib/ (if using Foundry, though 'lib' is often kept, 'node_modules' is not)
+
+# Environment / Secret Files
+.env
+.env.local
+.secret
+
+# System Files
+.DS_Store
+Thumbs.db
