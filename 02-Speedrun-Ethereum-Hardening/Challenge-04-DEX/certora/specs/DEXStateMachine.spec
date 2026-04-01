@@ -95,7 +95,7 @@ rule tokenToEth_reverts_on_zero_input(env e) {
     assert lastReverted;
 }
 
-/// tokenToEth() reverts when the caller's allowance is insufficient (Bug A fixed).
+/// tokenToEth() reverts when the caller's allowance is insufficient.
 rule tokenToEth_reverts_on_insufficient_allowance(env e, uint256 tokenInput) {
     require stateBounded(e);
     require tokenInput > 0 && tokenInput < 2^128;

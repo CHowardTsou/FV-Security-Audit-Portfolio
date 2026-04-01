@@ -37,6 +37,14 @@ certoraRun certora/confs/dex_statemachine.conf
 certoraRun certora/confs/dex_accounting.conf
 ```
 
+## Certora cloud results
+
+| Spec | Report |
+| ---- | ------ |
+| DEXSanity | [View report](https://prover.certora.com/output/6854102/2d01573728f74463985656eb363f67cc?anonymousKey=54979b64f176761bbd12d671e4162b820921f424) |
+| DEXStateMachine | [View report](https://prover.certora.com/output/6854102/ebf866928ef54f4ea35bafb68f8f6c82?anonymousKey=e69fe4f334fd5bf02f10d174fcb6d97fc728094c) |
+| DEXAccounting | [View report](https://prover.certora.com/output/6854102/432e81534d144669b8393c66da9bc5c3?anonymousKey=b34995466ca24f89c06be8786c0fa455cd36b4be) |
+
 ## Expected results (all GREEN)
 
 ### DEXSanity.spec
@@ -59,7 +67,7 @@ certoraRun certora/confs/dex_accounting.conf
 | `ethToToken_reverts_on_zero_msg_value`         | GREEN                                                  |
 | `ethToToken_reverts_when_uninitialized`        | **RED — documents Finding C (see below)**              |
 | `tokenToEth_reverts_on_zero_input`             | GREEN                                                  |
-| `tokenToEth_reverts_on_insufficient_allowance` | GREEN — verifies Bug A is fixed                        |
+| `tokenToEth_reverts_on_insufficient_allowance` | GREEN                                                  |
 | `deposit_reverts_on_zero_msg_value`            | GREEN                                                  |
 | `deposit_reverts_when_uninitialized`           | GREEN                                                  |
 | `withdraw_reverts_on_insufficient_shares`                | GREEN                                                  |
@@ -75,7 +83,7 @@ certoraRun certora/confs/dex_accounting.conf
 | `totalLiquidity_equals_sum_of_shares` (invariant) | GREEN                           |
 | `ethToToken_eth_increases_tokens_decrease`        | GREEN                           |
 | `tokenToEth_token_balance_increases_by_input`     | GREEN                           |
-| `tokenToEth_eth_output_matches_price`             | GREEN — verifies Bug B is fixed |
+| `tokenToEth_eth_output_matches_price`             | GREEN                           |
 | `deposit_increases_total_liquidity`               | GREEN                           |
 | `deposit_increases_caller_shares`                 | GREEN                           |
 | `withdraw_decreases_caller_shares_by_amount`      | GREEN                           |

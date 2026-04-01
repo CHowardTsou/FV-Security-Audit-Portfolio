@@ -161,7 +161,7 @@ rule tokenToEth_token_balance_increases_by_input(env e, uint256 tokenInput) {
 }
 
 /// After tokenToEth: ETH output equals price(tokenInput, tokenReserve, ethReserve).
-/// Verifies Bug B is fixed — implementation now uses address(this).balance, not totalLiquidity.
+/// Verifies ETH output matches the AMM price formula.
 rule tokenToEth_eth_output_matches_price(env e, uint256 tokenInput) {
     require poolStateBounded(e);
     require tokenStateBounded(e);
