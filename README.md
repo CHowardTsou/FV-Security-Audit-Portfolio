@@ -46,6 +46,22 @@ A crowdfunding protocol where contributors pool ETH before a deadline. On succes
 | [CrowdFundAccounting](02-Speedrun-Ethereum-Hardening/Challenge-01-CrowdFunding/certora/specs/CrowdFundAccounting.spec) | 6 + 2 ghosts | Exact contribution accounting, receive-path equivalence, withdraw zeroing, per-user balance isolation |
 | [CrowdFundMeta](02-Speedrun-Ethereum-Hardening/Challenge-01-CrowdFunding/certora/specs/CrowdFundMeta.spec) | 6 | Function reachability, storage effect, view safety, revert rollback |
 
+### Challenge 04 — DEX
+
+**Contracts**: `DEX.sol`, `Balloons.sol` (ERC-20)
+
+A constant-product AMM (`x * y = k`) supporting ETH ↔ ERC-20 swaps with a 0.3% fee, plus proportional liquidity deposit and withdrawal.
+
+| Spec | Rules / Invariants | What it proves |
+|:-----|:-------------------|:---------------|
+| [DEXAccounting](02-Speedrun-Ethereum-Hardening/Challenge-04-DEX/certora/specs/DEXAccounting.spec) | 12 rules + 2 invariants + ghost | Pool solvency invariant, LP share conservation, exact balance deltas for all functions, constant-product non-decrease (fee accrual), proportional withdraw correctness, deposit price-ratio and ETH-per-share non-decrease |
+| [DEXStateMachine](02-Speedrun-Ethereum-Hardening/Challenge-04-DEX/certora/specs/DEXStateMachine.spec) | 10 rules | Revert gates for all functions, only `init` bootstraps pool, authorized reserve drain (ETH / token) |
+| [DEXSanity](02-Speedrun-Ethereum-Hardening/Challenge-04-DEX/certora/specs/DEXSanity.spec) | 6 rules | `price()` output bound and monotonicity, reachability for all state-changing functions |
+
+**Finding documented**: `ethToToken_reverts_when_uninitialized` is intentionally red — the spec documents Finding C: an uninitialized pool with pre-deposited tokens can be drained by calling `ethToToken` with 1 wei before `init()`.
+
+---
+
 ### Challenge 02 — Token Vendor
 
 **Contracts**: `Vendor.sol`, `YourToken.sol` (ERC-20)
