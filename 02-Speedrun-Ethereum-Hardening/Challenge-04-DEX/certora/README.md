@@ -45,7 +45,9 @@ certoraRun certora/confs/dex_accounting.conf
 | DEXStateMachine | [View report](https://prover.certora.com/output/6854102/ebf866928ef54f4ea35bafb68f8f6c82?anonymousKey=e69fe4f334fd5bf02f10d174fcb6d97fc728094c) |
 | DEXAccounting | [View report](https://prover.certora.com/output/6854102/432e81534d144669b8393c66da9bc5c3?anonymousKey=b34995466ca24f89c06be8786c0fa455cd36b4be) |
 
-## Expected results (all GREEN)
+## Expected results
+
+All rules GREEN except `ethToToken_reverts_when_uninitialized` in DEXStateMachine, which is intentionally RED — it documents Finding C (uninitialized pool token drain). See the Findings section below.
 
 ### DEXSanity.spec
 
