@@ -76,18 +76,81 @@ A fixed-rate token vending machine that sells and buys back ERC-20 tokens. Demon
 
 ---
 
+### Challenge 05 — Oracles (Whitelist, Staking, Optimistic)
+
+A three-part series building progressively more sophisticated oracle designs — each with a full Certora suite and a published write-up.
+
+#### Whitelist Oracle
+
+**Contracts**: `WhitelistOracle.sol`, `SimpleOracle.sol`, `StatisticsUtils.sol`
+
+An aggregator oracle managing a whitelist of `SimpleOracle` contracts, filtering stale data, and returning the median price.
+
+| Spec | Rules / Invariants | What it proves |
+|:-----|:-------------------|:---------------|
+| [Sanity](02-Speedrun-Ethereum-Hardening/Challenge-05-Oracles-Whitelist/certora/specs/Sanity.spec) | 3 | Function reachability, event emission, owner-only revert |
+| [ValidState](02-Speedrun-Ethereum-Hardening/Challenge-05-Oracles-Whitelist/certora/specs/ValidState.spec) | 3 invariants | Array length consistency, index bounds, ghost-storage synchronization |
+| [StateTransitions](02-Speedrun-Ethereum-Hardening/Challenge-05-Oracles-Whitelist/certora/specs/StateTransitions.spec) | 6 | Add/remove oracle transitions, swap-and-pop correctness, owner enforcement |
+| [ReadPathProperties](02-Speedrun-Ethereum-Hardening/Challenge-05-Oracles-Whitelist/certora/specs/ReadPathProperties.spec) | 5 | Staleness filtering, median correctness, `NoOraclesAvailable` revert |
+| [ActiveSetMembership](02-Speedrun-Ethereum-Hardening/Challenge-05-Oracles-Whitelist/certora/specs/ActiveSetMembership.spec) | 4 | Active node set tracks fresh oracles only, membership consistency |
+
+📝 [Blog post](https://medium.com/@chinhaotsou_54090/formal-verification-of-a-whitelist-oracle-proving-correctness-with-certora-a0a3fca0da71)
+
+---
+
+#### Staking Oracle
+
+**Contracts**: `StakingOracle.sol`, `OracleToken.sol` (ERC-20), `StatisticsUtils.sol`
+
+An economic-incentive oracle with staking, slashing, bucket-based median reporting, and reward claiming.
+
+| Spec | Rules / Invariants | What it proves |
+|:-----|:-------------------|:---------------|
+| [Sanity](02-Speedrun-Ethereum-Hardening/Challenge-05-Oracles-Staking/certora/specs/Sanity.spec) | 4 | Function reachability, node registration liveness |
+| [ValidState](02-Speedrun-Ethereum-Hardening/Challenge-05-Oracles-Staking/certora/specs/ValidState.spec) | 5 invariants | Node struct consistency, stake floor, active flag semantics |
+| [StateMachine](02-Speedrun-Ethereum-Hardening/Challenge-05-Oracles-Staking/certora/specs/StateMachine.spec) | 8 | Registration/exit transitions, waiting period enforcement, bucket sequencing |
+| [Accounting](02-Speedrun-Ethereum-Hardening/Challenge-05-Oracles-Staking/certora/specs/Accounting.spec) | 9 | Stake conservation, slash arithmetic, reward minting, effective stake calculation |
+| [Views](02-Speedrun-Ethereum-Hardening/Challenge-05-Oracles-Staking/certora/specs/Views.spec) | 5 | `getLatestPrice`, `getEffectiveStake`, `getOutlierNodes` correctness |
+
+📝 [Blog post](https://medium.com/@chinhaotsou_54090/formal-verification-of-a-staking-oracle-certora-prover-continued-59e564ab2ff6)
+
+---
+
+#### Optimistic Oracle
+
+**Contracts**: `OptimisticOracle.sol`, `Decider.sol`
+
+A dispute-based oracle inspired by UMA Protocol. Asserters post ETH rewards; proposers bond `2×reward`; disputers challenge; a trusted decider resolves contested outcomes.
+
+| Spec | Rules / Invariants | What it proves |
+|:-----|:-------------------|:---------------|
+| [Sanity](02-Speedrun-Ethereum-Hardening/Challenge-05-Oracles-Optimistic/certora/specs/Sanity.spec) | 4 | Liveness for all claim/refund paths, `nextAssertionId` monotonicity, invariant witnesses |
+| [ValidState](02-Speedrun-Ethereum-Hardening/Challenge-05-Oracles-Optimistic/certora/specs/ValidState.spec) | 5 invariants | `bond = 2×reward`, proposer/disputer/winner ordering pyramid, ID counter floor |
+| [StateMachine](02-Speedrun-Ethereum-Hardening/Challenge-05-Oracles-Optimistic/certora/specs/StateMachine.spec) | 9 | Terminal field immutability (`claimed`, `winner`, `proposer`, `disputer`), correct initialization, winner determination, `getState` semantics |
+| [Accounting](02-Speedrun-Ethereum-Hardening/Challenge-05-Oracles-Optimistic/certora/specs/Accounting.spec) | 8 | No double-claim across three payout paths, exact bond enforcement, payout state correctness |
+| [AccessControl](02-Speedrun-Ethereum-Hardening/Challenge-05-Oracles-Optimistic/certora/specs/AccessControl.spec) | 6 | Only owner changes decider, only decider settles, prerequisite gating for each transition |
+| [TimingWindow](02-Speedrun-Ethereum-Hardening/Challenge-05-Oracles-Optimistic/certora/specs/TimingWindow.spec) | 7 | Proposal/dispute/claim/refund window enforcement, dispute deadline reset on proposal |
+
+📝 [Blog post](https://medium.com/@chinhaotsou_54090/formal-verification-of-an-optimistic-oracle-certora-prover-the-final-oracle-ed1671f9d3f1)
+
+---
+
 ## CVL Techniques Covered
 
 | Technique | Where used |
 |:----------|:-----------|
-| Parametric rules (`method f`) | Token, NaughtCoin, Vault, Vendor |
-| Ghost variables + Sstore hooks | Token, Elevator, Shop, CrowdFunding, Vendor |
-| `@withrevert` + `lastReverted` | CrowdFunding, Vendor, multiple Ethernaut levels |
+| Parametric rules (`method f`) | Token, NaughtCoin, Vault, Vendor, Oracles |
+| Ghost variables + `hook Sstore`/`Sload` | Token, Elevator, Shop, CrowdFunding, Vendor, Staking Oracle, Optimistic Oracle |
+| `@withrevert` + `lastReverted` | CrowdFunding, Vendor, all Oracle suites, multiple Ethernaut levels |
 | Method summaries (wildcard `_`) | Elevator, Shop |
-| `invariant` | Vendor (exchange rate) |
-| `satisfy` (witness / existence proof) | GatekeeperOne, Vendor, CrowdFunding |
+| `invariant` + `preserved` blocks | Vendor, all Oracle suites |
+| `requireInvariant` in preserved blocks (invariant pyramid) | Optimistic Oracle |
+| `satisfy` (witness / existence proof) | GatekeeperOne, Vendor, CrowdFunding, Oracle Sanity suites |
 | `nativeBalances` built-in | Vendor |
-| Linked contracts + harness | CrowdFunding, Vendor |
+| Linked contracts + harness | CrowdFunding, Vendor, Staking Oracle, Optimistic Oracle |
+| `calldataarg` for opaque arguments | Optimistic Oracle (`string description`) |
+| `optimistic_fallback` for ETH transfer modeling | Optimistic Oracle |
+| Mutation testing (Gambit) | All Oracle suites |
 | Liveness analysis | Denial |
 
 ---
