@@ -1,12 +1,19 @@
 # FV Security Audit Portfolio
 
-A hands-on portfolio of smart contract security work using **Formal Verification (FV)** with the [Certora Prover](https://www.certora.com/). Each entry contains the target contract, CVL specification, and a write-up of the findings.
+A hands-on portfolio of smart contract security work using **Formal Verification (FV)** with the [Certora Prover](https://www.certora.com/). Each entry contains the target contract, the specification (CVL for Solidity, CVLR/Sunbeam for Soroban), and a write-up of the findings.
+
+## Competitive Audit Results
+
+| Contest | Platform | Chain / Language | Findings | Tooling |
+|:--------|:---------|:-----------------|:---------|:--------|
+| [K2 — April 2026](03-Competitive-Audits/2026-04-K2-Code4rena/) | Code4rena | Stellar Soroban / Rust | **2 × Medium** ([M-25](03-Competitive-Audits/2026-04-K2-Code4rena/findings/M-25-oracle-vector-cache-serves-disabled-asset.md), [M-42](03-Competitive-Audits/2026-04-K2-Code4rena/findings/M-42-atoken-transfer-from-exceeds-allowance.md)) as `cht1206` | Certora Sunbeam |
 
 ## Structure
 
 ```
 01-Ethernaut-FV-Solutions/       # Vulnerability discovery on intentionally broken contracts
 02-Speedrun-Ethereum-Hardening/  # Protocol hardening on production-style Speedrun Ethereum contracts
+03-Competitive-Audits/           # Judged findings from public audit contests, found with formal verification
 ```
 
 ---
@@ -135,6 +142,22 @@ A dispute-based oracle inspired by UMA Protocol. Asserters post ETH rewards; pro
 
 ---
 
+## 03 — Competitive Audits
+
+Formal verification used as a bug-finding engine on live audit contests. Every finding follows the same workflow: an **expected-red** rule fails on the contest code, a **host PoC** confirms the impact against the real compiled contracts, and a **closure** rule passes on the fix.
+
+### Code4rena — K2 (April 2026)
+
+**Target**: an Aave-style lending protocol on Stellar/Soroban (Rust): router, aTokens and debt tokens, a TTL-cached price oracle, a liquidation engine, flash liquidations, incentives and swap adapters.
+**Campaign**: Certora Sunbeam (`certoraSorobanProver`), 8 spec families, ~1,950 `#[rule]`s, ~760 Prover jobs. [Official report](https://code4rena.com/reports/2026-04-k2).
+
+| Finding | Severity | Bug class | Sunbeam technique | Prover result |
+|:--------|:---------|:----------|:------------------|:--------------|
+| [M-25 — Disabled oracle assets remain usable through the batch-price TTL cache](03-Competitive-Audits/2026-04-K2-Code4rena/findings/M-25-oracle-vector-cache-serves-disabled-asset.md) | Medium | Cache invalidation / check ordering | Reduced-model decision rule | ❌ expected-red 2/2 → ✅ closure 4/4 |
+| [M-42 — Approved spender can move more aToken value than its nominal allowance](03-Competitive-Audits/2026-04-K2-Code4rena/findings/M-42-atoken-transfer-from-exceeds-allowance.md) | Medium | Unit mismatch: nominal allowance vs. rounded-up scaled debit | Bounded symbolic arithmetic + guarded invariant | ❌ expected-red 3/3 (+ host PoC) |
+
+---
+
 ## CVL Techniques Covered
 
 | Technique | Where used |
@@ -152,12 +175,19 @@ A dispute-based oracle inspired by UMA Protocol. Asserters post ETH rewards; pro
 | `optimistic_fallback` for ETH transfer modeling | Optimistic Oracle |
 | Mutation testing (Gambit) | All Oracle suites |
 | Liveness analysis | Denial |
+| Sunbeam / CVLR `#[rule]` specs for Soroban (Rust → WASM) | K2 |
+| Reduced-model rules (logic restated as pure functions) | K2 (M-25, M-42) |
+| Expected-red → fix → closure workflow | K2 (M-25) |
+| Guarded invariants (assume accepted → assert bound; counterexample = exploit input) | K2 (M-42) |
+| Bounded symbolic RAY arithmetic (rounding-direction bugs) | K2 (M-42) |
 
 ---
 
 ## Tools
 
-- **Certora Prover** — `certoraRun`
+- **Certora Prover** — `certoraRun` (Solidity / CVL)
+- **Certora Sunbeam** — `certoraSorobanProver` (Soroban / Rust, CVLR)
+- **Rust / Soroban SDK** (host PoC tests)
 - **Solidity** `0.8.20`
 - **OpenZeppelin Contracts** v5
 - **Hardhat** (challenge development)
